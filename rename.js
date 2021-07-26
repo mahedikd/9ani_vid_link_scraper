@@ -49,5 +49,4 @@ files.forEach((file) => {
     }
   });
 });
-
 log('\n___finished___\n');

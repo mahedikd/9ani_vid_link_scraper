@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-shadow */
 /* eslint-disable no-console */
 const argv = require('minimist')(process.argv.slice(2));
 const chalk = require('chalk');
@@ -7,9 +9,12 @@ const puppeteer = require('puppeteer-core');
 const { writeFileSync: write } = require('fs');
 const { execSync: exec } = require('child_process');
 
+// sets options for browser
 const userAgent =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4422.0 Safari/537.36';
-const log = console.log;
+const browserPath = '/usr/bin/brave';
+const showProcess = argv.s; // true - opens browser / false - does not open browser
+const { log } = console;
 const url = argv.u;
 const res = argv.r;
 
@@ -53,24 +58,48 @@ const animeName = url
   .replace(/-/g, '_')
   .replace(/\..*/, '');
 
-async function steamTamefoVidstrm(url) {
+async function streamtape(url) {
+  const browser = await puppeteer.launch({
+    executablePath: browserPath,
+    headless: !showProcess,
+    args: ['--disable-dev-shm-usage'],
+  });
   try {
-    const browser = await puppeteer.launch({
-      executablePath: '/usr/bin/brave',
-    });
     const [page] = await browser.pages();
     await page.setUserAgent(userAgent);
-    await page.setDefaultNavigationTimeout(0);
+
+    // // closes dynamically opened tab
+    if (showProcess) {
+      browser.on('targetcreated', async (target) => {
+        const page = await target.page();
+        if (page) page.close();
+      });
+    }
+
+    // blocks useless request
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (
+        req.resourceType() === 'stylesheet' ||
+        req.resourceType() === 'font' ||
+        req.resourceType() === 'image'
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
 
     // goes to 9anime to collect iframe src
     await page.goto(url);
-    await page.waitForNavigation({ waitUntil: 'networkidle2' });
-    await page.waitForSelector('#episodes');
+    await page.waitForSelector('#server40');
     await page.click('#server40');
+    await page.waitForTimeout(3000);
     await page.click('#server40');
+    await page.waitForTimeout(3000);
     await page.click('#server40');
-    await page.waitForTimeout(5000);
     await page.waitForSelector('#player > iframe');
+    await page.waitForTimeout(5000);
 
     const pageIframe = await page.evaluate(
       () => document.querySelector('#player > iframe').src,
@@ -78,7 +107,10 @@ async function steamTamefoVidstrm(url) {
 
     // goes to steamtape to collect player src
     await page.goto(pageIframe);
-    await page.waitForSelector('#videolink');
+    await page.waitForTimeout(2000);
+    await page.waitForSelector('#videolink', {
+      timeout: 3000,
+    });
 
     const videoLink = (
       await page.evaluate(() => document.querySelector('#videolink').innerText)
@@ -91,32 +123,50 @@ async function steamTamefoVidstrm(url) {
     const videoDownloadLink = await page.evaluate(
       () => document.querySelector('body > video > source').src,
     );
-    log(videoDownloadLink);
-    browser.close();
 
     return videoDownloadLink;
   } catch (error) {
-    log(error);
+    log(chalk.red(`from streamtape: ${error.message}`));
+  } finally {
+    await browser.close();
   }
 }
 
-async function vidstrm(url) {
+async function vidstream(url) {
+  const browser = await puppeteer.launch({
+    executablePath: browserPath,
+    headless: !showProcess,
+    args: [
+      '--disable-web-security',
+      '--disable-features=IsolateOrigins,site-per-process',
+    ],
+  });
+  // checks if folder exists if not create it
+  const dir = path.resolve(__dirname, 'lists');
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
   try {
-    const browser = await puppeteer.launch({
-      executablePath: '/usr/bin/brave',
-      // headless: false,
-      args: [
-        '--disable-web-security',
-        '--disable-features=IsolateOrigins,site-per-process',
-      ],
-    });
     const [page] = await browser.pages();
     await page.setUserAgent(userAgent);
-    await page.setDefaultNavigationTimeout(0);
+
+    // blocks useless request
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      if (
+        req.resourceType() === 'stylesheet' ||
+        req.resourceType() === 'font' ||
+        req.resourceType() === 'image'
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
 
     await page.goto(url);
-    await page.waitForTimeout(5000);
     await page.waitForSelector('#player iframe');
+    await page.waitForTimeout(5000);
 
     log(chalk.bgBlack(`Anime to Crawl For: ${animeName}\n`));
 
@@ -126,61 +176,54 @@ async function vidstrm(url) {
         (elem) => elem.href,
       ),
     );
-    log(chalk.bold.yellow(`total episode ${totalEpisodeUrls.length}\n`));
-
-    // checks if folder exists if not create it
-    const dir = path.resolve(__dirname, 'lists');
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
-    }
+    log(chalk.bold.yellow(`Total episode ${totalEpisodeUrls.length}\n`));
+    if (resumeFrom > 0) log(chalk.yellow(`Resuming from ${res}\n`));
 
     // iterates over all links for downloadUrl
     for (resumeFrom; resumeFrom < totalEpisodeUrls.length; resumeFrom += 1) {
+      const url = totalEpisodeUrls[resumeFrom];
+      const episode = url.slice(-5).replace(/\D+/, '');
+      let downloadUrl;
+      let output;
       try {
-        const url = totalEpisodeUrls[resumeFrom];
-        const episode = url.slice(-5).replace(/\D+/, '');
-
         await page.goto(url);
+        await page.waitForSelector('#player iframe', { timeout: 10000 });
         await page.waitForTimeout(5000);
-        await page.waitForSelector('#player iframe');
 
         const elementHandle = await page.$('#player iframe');
         const frame = await elementHandle.contentFrame();
         const context = await frame.executionContext();
-        await page.waitForTimeout(2000);
-        let downloadUrl = await context.evaluate(
-          () => document.querySelector('video').src,
-        );
+        output = `Episode:${episode} Url:${downloadUrl}`;
+        downloadUrl = await context.evaluate(() => document.querySelector('video').src);
 
-        const output = `episode:${episode} url:${downloadUrl}`;
         const isBlob = downloadUrl.match(/^blob/);
+        output = `Episode:${episode} Url:${downloadUrl}`;
 
         if (isBlob) {
           log(chalk.bgGray(`blob-------------episode:${episode}`));
-          downloadUrl = await steamTamefoVidstrm(url);
-          log(chalk.grey('-------------------------'));
-        } else {
-          log(output);
+          downloadUrl = await streamtape(url);
+          output = `Episode:${episode} Url:${downloadUrl}`;
         }
-
-        // writes to file
-        exec(`echo '${output}' >> ${dir}/${animeName}.txt`);
-
-        finalUrl.push({ episode, episodeUrl: url, downloadUrl });
       } catch (error) {
-        log(chalk.red(error.message));
+        log(chalk.red(`from vidstream loop: ${error.message}`));
+      } finally {
+        // writes to file
+        log(output);
+        finalUrl.push({ episode, episodeUrl: url, downloadUrl });
+        exec(`echo '${downloadUrl}' >> ${dir}/${animeName}.txt`);
       }
     }
-    // writes to json
-    write(`${dir}/${animeName}.json`, JSON.stringify(finalUrl));
 
     log(chalk.green('\nall done________________\n'));
     browser.close();
-
-    return;
   } catch (error) {
-    log(chalk.red(error.message));
+    log(chalk.red(`from vidstream: ${error.message}`));
+  } finally {
+    await browser.close();
+    // writes to json
+    write(`${dir}/${animeName}.json`, JSON.stringify(finalUrl));
   }
 }
 
-vidstrm(url);
+vidstream(url);
+// streamtape(url);
