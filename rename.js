@@ -4,7 +4,7 @@ const { resolve } = require('path');
 const argv = require('minimist')(process.argv.slice(2));
 
 const path = argv.p;
-const log = console.log;
+const { log } = console;
 
 if (typeof path === 'string') {
   log('working on it...\n');
@@ -16,20 +16,22 @@ if (typeof path === 'string') {
 // Get path to json or text directory
 const outputDir = resolve(__dirname, 'lists');
 const outputFileName = readdirSync(outputDir).filter(
-  (name) => path.match(name.replace(/\s+/, '|')) && name.endsWith('txt'),
-)[0];
+  (name) => name.match(path.replace('/', '|')) && name.endsWith('json'),
+);
 
-const episodeOutputs = read(`${outputDir}/${outputFileName}`, 'utf-8')
-  .split('\n')
-  .filter(Boolean);
+if (outputFileName.length > 1) {
+  log("check your json files there's more than one matching");
+  process.exit();
+}
+const episodeOutputs = JSON.parse(read(`${outputDir}/${outputFileName}`, 'utf-8'));
 
 const episodeList = [];
 
 // Makes object from output text
-episodeOutputs.forEach((line) => {
-  const array = line.split(/\s+|\/|:/);
-  const episode = array[1];
-  const name = array[array.length - 1];
+episodeOutputs.forEach((epi) => {
+  const preName = epi.downloadUrl.split('/').filter(Boolean);
+  const name = preName[preName.length - 1];
+  const episode = epi.episode;
   episodeList.push({ episode, name });
 });
 
@@ -43,9 +45,9 @@ files.forEach((file) => {
     if (episode.name == file) {
       const oldPath = `${dir}/${file}`;
       const newPath = `${dir}/${episode.episode}.mp4`;
-      rename(oldPath, newPath, (err) => log(err));
+      rename(oldPath, newPath, (err) => {});
     }
   });
 });
 
-console.log('finished');
+log('\n___finished___\n');
