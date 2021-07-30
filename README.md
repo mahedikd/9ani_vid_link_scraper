@@ -1,6 +1,6 @@
 # 9anime_scraper
 
-This script crawls 9anime for the download links. After a successful run, it generates 2 files. 1 text file and 1 JSON file. Use the text file with any batch downloader to download all the episodes the scripts collected. Do not rename any episode that was downloaded. You can use the rename.js script to rename all the downloaded files to the original episode number
+This script crawls 9anime for the download links. After a successful run, it generates 2 files. 1 text file and 1 JSON file. Use the text file with any batch downloader to download all the episodes the scripts collected. Do not rename any episode that was downloaded. You can use the rename.js script to rename all the downloaded files to the original episode number. This script can also be used to download specific episodes. To download specific episodes create a text file and place 1 episode number in each line and pass that file to the script. Use `-h` for available options.
 
 ### Requirement
 
