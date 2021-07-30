@@ -28,10 +28,14 @@ if (argv.h) {
       -h,     this help overview
       -u,     give episode url
       -r,     give episode number which to resume form
+      -e,     give a text file which contains episodes to download[every line should contain one number]
+      -s,     opens the browser to show the process
 
     example:
       node index -u https://9anime.to/watch/bleach-dub.km3v/ep-16 -r 30
-      node index -u https://9anime.to/watch/bleach-dub.km3v/ep-16`,
+      node index -u https://9anime.to/watch/bleach-dub.km3v/ep-16 -s
+      node index -u https://9anime.to/watch/bleach-dub.km3v/ep-16 -e epi.txt
+      `,
     ),
   );
   process.exit();
@@ -44,7 +48,16 @@ if (typeof url === 'string') {
   process.exit();
 }
 
+const specific = argv.e;
+if (typeof specific !== 'string') {
+  log(chalk.bold.red('give a file path'));
+  process.exit();
+}
+const specificEpisodes = argv.e
+  ? fs.readFileSync(specific, 'utf-8').split('\n').filter(Boolean)
+  : 0;
 let resumeFrom;
+
 if (typeof res === 'number' && res > 0) {
   resumeFrom = res - 1;
 } else {
@@ -142,7 +155,7 @@ async function vidstream(url) {
     ],
   });
   // checks if folder exists if not create it
-  const dir = path.resolve(__dirname, 'lists');
+  const dir = path.resolve(__dirname, 'files');
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
@@ -178,13 +191,33 @@ async function vidstream(url) {
     );
     log(chalk.bold.yellow(`Total episode ${totalEpisodeUrls.length}\n`));
     if (resumeFrom > 0) log(chalk.yellow(`Resuming from ${res}\n`));
+    if (specificEpisodes.length > 0)
+      log(chalk.yellow(`Specific Episodes to Download ${specificEpisodes.join(', ')}\n`));
 
     // iterates over all links for downloadUrl
+    let loop = 0;
     for (resumeFrom; resumeFrom < totalEpisodeUrls.length; resumeFrom += 1) {
-      const url = totalEpisodeUrls[resumeFrom];
+      // exit process if iterated over specificEpisodes
+      if (specificEpisodes.length > 0) {
+        const processExit = specificEpisodes.length === loop;
+        if (processExit) {
+          browser.close();
+          log(chalk.green('\ndone________________\n'));
+          // writes to json
+          write(`${dir}/${animeName}.json`, JSON.stringify(finalUrl));
+          process.exit();
+        }
+        loop += 1;
+      }
+
+      const url =
+        specificEpisodes.length > 0
+          ? totalEpisodeUrls[specificEpisodes[resumeFrom] - 1]
+          : totalEpisodeUrls[resumeFrom];
       const episode = url.slice(-5).replace(/\D+/, '');
       let downloadUrl;
       let output;
+
       try {
         await page.goto(url);
         await page.waitForSelector('#player iframe', { timeout: 10000 });
