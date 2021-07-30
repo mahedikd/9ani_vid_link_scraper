@@ -18,8 +18,6 @@ const { log } = console;
 const url = argv.u;
 const res = argv.r;
 
-console.clear();
-
 if (argv.h) {
   log(
     chalk.yellow(
@@ -32,9 +30,9 @@ if (argv.h) {
       -s,     opens the browser to show the process
 
     example:
-      node index -u https://9anime.to/watch/bleach-dub.km3v/ep-16 -r 30
-      node index -u https://9anime.to/watch/bleach-dub.km3v/ep-16 -s
-      node index -u https://9anime.to/watch/bleach-dub.km3v/ep-16 -e epi.txt
+      node 9ani -u https://9anime.to/watch/bleach-dub.km3v/ep-16 -r 30
+      node 9ani -u https://9anime.to/watch/bleach-dub.km3v/ep-16
+      node 9ani -u https://9anime.to/watch/bleach-dub.km3v/ep-16 -e epi.txt
       `,
     ),
   );
@@ -44,7 +42,7 @@ if (argv.h) {
 if (typeof url === 'string') {
   log(chalk.green('working on it...\n'));
 } else {
-  log(chalk.bold.red('give an url using [-u]'));
+  log(chalk.bold.red('give url using [-u]\n\nuse -h for help\n'));
   process.exit();
 }
 
@@ -63,6 +61,8 @@ if (typeof res === 'number' && res > 0) {
 } else {
   resumeFrom = 0;
 }
+
+console.clear();
 
 const finalUrl = [];
 const animeName = url

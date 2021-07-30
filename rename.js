@@ -6,10 +6,23 @@ const argv = require('minimist')(process.argv.slice(2));
 const path = argv.p;
 const { log } = console;
 
+if (argv.h) {
+  log(
+    `USAGE: node rename [options]
+    [options]
+      -p,     give absolute path of the downloaded folder path.
+
+    example:
+      node rename -p /home/USER/Download/bleach_dub/
+      `,
+  );
+  process.exit();
+}
+
 if (typeof path === 'string') {
   log('working on it...\n');
 } else {
-  log('give an path using [-p]');
+  log('give path using [-p]\n\nuse -h for help\n');
   process.exit();
 }
 
