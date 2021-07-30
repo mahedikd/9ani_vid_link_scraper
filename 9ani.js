@@ -46,16 +46,19 @@ if (typeof url === 'string') {
   process.exit();
 }
 
-const specific = argv.e;
-if (typeof specific !== 'string') {
-  log(chalk.bold.red('give a file path'));
-  process.exit();
+let specificEpisodes = [];
+if (argv.e) {
+  const specific = argv.e;
+  specificEpisodes = argv.e
+    ? fs.readFileSync(specific, 'utf-8').split('\n').filter(Boolean)
+    : 0;
+  if (typeof specific !== 'string') {
+    log(chalk.bold.red('give a file path'));
+    process.exit();
+  }
 }
-const specificEpisodes = argv.e
-  ? fs.readFileSync(specific, 'utf-8').split('\n').filter(Boolean)
-  : 0;
-let resumeFrom;
 
+let resumeFrom;
 if (typeof res === 'number' && res > 0) {
   resumeFrom = res - 1;
 } else {
