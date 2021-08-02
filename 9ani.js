@@ -3,11 +3,15 @@
 /* eslint-disable no-console */
 const argv = require('minimist')(process.argv.slice(2));
 const chalk = require('chalk');
-const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer-core');
-const { writeFileSync: write } = require('fs');
-const { execSync: exec } = require('child_process');
+const {
+  writeFileSync: write,
+  appendFileSync: append,
+  readFileSync: read,
+  mkdirSync: mkdir,
+  existsSync: existsDir,
+} = require('fs');
 
 // sets options for browser
 const userAgent =
@@ -49,9 +53,7 @@ if (typeof url === 'string') {
 let specificEpisodes = [];
 if (argv.e) {
   const specific = argv.e;
-  specificEpisodes = argv.e
-    ? fs.readFileSync(specific, 'utf-8').split('\n').filter(Boolean)
-    : 0;
+  specificEpisodes = argv.e ? read(specific, 'utf-8').split('\n').filter(Boolean) : 0;
   if (typeof specific !== 'string') {
     log(chalk.bold.red('give a file path'));
     process.exit();
@@ -159,8 +161,8 @@ async function vidstream(url) {
   });
   // checks if folder exists if not create it
   const dir = path.resolve(__dirname, 'files');
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir);
+  if (!existsDir(dir)) {
+    mkdir(dir);
   }
   try {
     const [page] = await browser.pages();
@@ -246,7 +248,7 @@ async function vidstream(url) {
         // writes to file
         log(output);
         finalUrl.push({ episode, episodeUrl: url, downloadUrl });
-        exec(`echo '${downloadUrl}' >> ${dir}/${animeName}.txt`);
+        append(`${dir}/${animeName}.txt`, `${downloadUrl}\n`);
       }
     }
 
