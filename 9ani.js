@@ -44,6 +44,7 @@ if (argv.h) {
 }
 
 if (typeof url === 'string') {
+  console.clear();
   log(chalk.green('working on it...\n'));
 } else {
   log(chalk.bold.red('give url using [-u]\n\nuse -h for help\n'));
@@ -66,8 +67,6 @@ if (typeof res === 'number' && res > 0) {
 } else {
   resumeFrom = 0;
 }
-
-console.clear();
 
 const finalUrl = [];
 const animeName = url
