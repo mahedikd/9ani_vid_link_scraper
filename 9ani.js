@@ -251,13 +251,13 @@ async function vidstream(url) {
     }
 
     log(chalk.green('\nall done________________\n'));
-    browser.close();
   } catch (error) {
     log(chalk.red(`from vidstream: ${error.message}`));
   } finally {
-    await browser.close();
+    browser.close();
     // writes to json
     write(`${dir}/${animeName}.json`, JSON.stringify(finalUrl));
+    process.exit();
   }
 }
 
