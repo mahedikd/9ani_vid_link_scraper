@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-const { readdirSync, rename, readFileSync: read } = require('fs');
+const { readdirSync: readdir, renameSync: rename, readFileSync: read } = require('fs');
 const { resolve } = require('path');
 const argv = require('minimist')(process.argv.slice(2));
 
@@ -27,8 +27,8 @@ if (typeof path === 'string') {
 }
 
 // Get path to json or text directory
-const outputDir = resolve(__dirname, 'lists');
-const outputFileName = readdirSync(outputDir).filter(
+const outputDir = resolve(__dirname, 'files');
+const outputFileName = readdir(outputDir).filter(
   (name) => name.match(path.replace('/', '|')) && name.endsWith('json'),
 );
 
@@ -50,7 +50,7 @@ episodeOutputs.forEach((epi) => {
 
 // Get an array of the files inside the folder
 const dir = resolve(__dirname, path);
-const files = readdirSync(dir);
+const files = readdir(dir);
 
 // Renames file accroding to output.txt file
 files.forEach((file) => {
@@ -58,7 +58,7 @@ files.forEach((file) => {
     if (episode.name == file) {
       const oldPath = `${dir}/${file}`;
       const newPath = `${dir}/${episode.episode}.mp4`;
-      rename(oldPath, newPath, (err) => {});
+      rename(oldPath, newPath);
     }
   });
 });

@@ -53,7 +53,7 @@ if (typeof url === 'string') {
 let specificEpisodes = [];
 if (argv.e) {
   const specific = argv.e;
-  specificEpisodes = argv.e ? read(specific, 'utf-8').split('\n').filter(Boolean) : 0;
+  specificEpisodes = argv.e ? read(specific, 'utf-8').split('\n').filter(Boolean) : [];
   if (typeof specific !== 'string') {
     log(chalk.bold.red('give a file path'));
     process.exit();
@@ -231,7 +231,6 @@ async function vidstream(url) {
         const elementHandle = await page.$('#player iframe');
         const frame = await elementHandle.contentFrame();
         const context = await frame.executionContext();
-        output = `Episode:${episode} Url:${downloadUrl}`;
         downloadUrl = await context.evaluate(() => document.querySelector('video').src);
 
         const isBlob = downloadUrl.match(/^blob/);
