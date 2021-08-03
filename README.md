@@ -57,6 +57,8 @@ USAGE: node rename [options]
 
 #### Note
 
+This script needs stable net connection for it to successfully get all links.
+
 The output of the `9ani` script can be found in **files** folder. It is created in the scripts folder. Use those file names to rename the downloaded episodes folder before running the `rename` script.
 
 ex. if the output looks like naruto_dub.txt, rename your downloaded video folder to naruto_dub.
