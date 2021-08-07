@@ -80,6 +80,7 @@ async function streamtape(url) {
     executablePath: browserPath,
     headless: !showProcess,
     args: ['--disable-dev-shm-usage', '--no-sandbox', '--single-process', '--no-zygote'],
+    defaultViewport: null,
   });
   try {
     const [page] = await browser.pages();
@@ -94,18 +95,20 @@ async function streamtape(url) {
     }
 
     // blocks useless request
-    await page.setRequestInterception(true);
-    page.on('request', (req) => {
-      if (
-        req.resourceType() === 'stylesheet' ||
-        req.resourceType() === 'font' ||
-        req.resourceType() === 'image'
-      ) {
-        req.abort();
-      } else {
-        req.continue();
-      }
-    });
+    if (!showProcess) {
+      await page.setRequestInterception(true);
+      page.on('request', (req) => {
+        if (
+          req.resourceType() === 'stylesheet' ||
+          req.resourceType() === 'font' ||
+          req.resourceType() === 'image'
+        ) {
+          req.abort();
+        } else {
+          req.continue();
+        }
+      });
+    }
 
     // goes to 9anime to collect iframe src
     await page.goto(url);
@@ -160,6 +163,7 @@ async function vidstream(url) {
       '--single-process',
       '--no-zygote',
     ],
+    defaultViewport: null,
   });
   // checks if folder exists if not create it
   const dir = path.resolve(__dirname, 'files');
@@ -171,18 +175,20 @@ async function vidstream(url) {
     await page.setUserAgent(userAgent);
 
     // blocks useless request
-    await page.setRequestInterception(true);
-    page.on('request', (req) => {
-      if (
-        req.resourceType() === 'stylesheet' ||
-        req.resourceType() === 'font' ||
-        req.resourceType() === 'image'
-      ) {
-        req.abort();
-      } else {
-        req.continue();
-      }
-    });
+    if (!showProcess) {
+      await page.setRequestInterception(true);
+      page.on('request', (req) => {
+        if (
+          req.resourceType() === 'stylesheet' ||
+          req.resourceType() === 'font' ||
+          req.resourceType() === 'image'
+        ) {
+          req.abort();
+        } else {
+          req.continue();
+        }
+      });
+    }
 
     await page.goto(url);
     await page.waitForSelector('#player iframe');
