@@ -6,7 +6,7 @@ This script crawls 9anime for the download links. After a successful run, it gen
 
 - node
 - npm
-- chrome or any chrome based browser
+- chromium or any chromium based browser [except 'brave']
 
 ### How to install
 
@@ -56,6 +56,8 @@ USAGE: node rename [options]
 ```
 
 #### Note
+
+This script was tested in linux with "vivaldi [ver:4.1.xxx.xx]" browser.
 
 This script needs stable net connection for it to successfully get all links.
 

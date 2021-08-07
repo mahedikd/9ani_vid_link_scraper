@@ -12,14 +12,11 @@ const {
   mkdirSync: mkdir,
   existsSync: existsDir,
 } = require('fs');
-const { execSync } = require('child_process');
 
 // sets options for browser
 const userAgent =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4422.0 Safari/537.36';
-const browserPath = '/usr/bin/brave';
-const browserArr = browserPath.split('/').filter(Boolean);
-const browserBin = browserArr[browserArr.length - 1];
+const browserPath = '/usr/bin/vivaldi-stable';
 const showProcess = argv.s; // true - opens browser / false - does not open browser
 const { log } = console;
 const url = argv.u;
@@ -261,7 +258,6 @@ async function vidstream(url) {
     log(chalk.red(`from vidstream: ${error.message}`));
   } finally {
     browser.close();
-    exec(`pkill ${browserBin}`);
     // writes to json
     write(`${dir}/${animeName}.json`, JSON.stringify(finalUrl));
     process.exit();
