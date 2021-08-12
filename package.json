@@ -1,17 +1,26 @@
 {
   "name": "9ani",
   "version": "1.0.0",
-  "description": "",
+  "description": "This script crawls 9anime for the download links. After a successful run, it generates 2 files. 1 text file and 1 JSON file. Use the text file with any batch downloader to download all the episodes the scripts collected. Do not rename any episode that was downloaded. You can use the rename.js script to rename all the downloaded files to the original episode number. This script can also be used to download specific episodes. To download specific episodes create a text file and place 1 episode number in each line and pass that file to the script. Use `-h` for available options.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "mahedikd",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "dependencies": {
     "chalk": "^4.1.1",
     "minimist": "^1.2.5",
     "puppeteer-core": "^10.1.0"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mahedikd/9anime_scraper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mahedikd/9anime_scraper/issues"
+  },
+  "homepage": "https://github.com/mahedikd/9anime_scraper#readme"
 }
