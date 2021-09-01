@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 const { readdirSync: readdir, renameSync: rename, readFileSync: read } = require('fs');
-const { resolve } = require('path');
+const { resolve, basename } = require('path');
 const argv = require('minimist')(process.argv.slice(2));
 
 const path = argv.p;
@@ -26,10 +26,12 @@ if (typeof path === 'string') {
   process.exit();
 }
 
-// Get path to json or text directory
+// Get path to json
 const outputDir = resolve(__dirname, 'files');
+const inputFolderName = basename(path);
+
 const outputFileName = readdir(outputDir).filter(
-  (name) => name.match(path.replace('/', '|')) && name.endsWith('json'),
+  (name) => name.match(inputFolderName) && name.endsWith('json'),
 );
 
 if (outputFileName.length > 1) {
@@ -42,21 +44,21 @@ const episodeList = [];
 
 // Makes object from output text
 episodeOutputs.forEach((epi) => {
-  const preName = epi.downloadUrl.split('/').filter(Boolean);
-  const name = preName[preName.length - 1];
+  if (!epi.downloadUrl) return;
+  const name = basename(epi.downloadUrl);
   const episode = epi.episode;
   episodeList.push({ episode, name });
 });
 
 // Get an array of the files inside the folder
 const dir = resolve(__dirname, path);
-const files = readdir(dir);
+const episodeNameInFolder = readdir(dir);
 
-// Renames file accroding to output.txt file
-files.forEach((file) => {
+// Renames file accroding to json file
+episodeNameInFolder.forEach((name) => {
   episodeList.forEach((episode) => {
-    if (episode.name == file) {
-      const oldPath = `${dir}/${file}`;
+    if (episode.name == name) {
+      const oldPath = `${dir}/${name}`;
       const newPath = `${dir}/${episode.episode}.mp4`;
       rename(oldPath, newPath);
     }
